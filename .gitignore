@@ -1,0 +1,5 @@
+# node_modules 폴더 무시
+node_modules/
+
+# .txt 파일 무시
+*.txt
