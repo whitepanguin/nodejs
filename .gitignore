@@ -3,3 +3,6 @@ node_modules/
 
 # .txt 파일 무시
 *.txt
+
+#gitignore 파일 무시 그래도 올려주는게 좋긴하다, 
+# .gitignore

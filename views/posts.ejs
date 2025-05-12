@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>게시판</title>
+  </head>
+  <body>
+    <h1>게시글 목록</h1>
+    <% posts.forEach(post => { %>
+    <div>
+      <h3><%= post.title %></h3>
+      <p><%= post.content %></p>
+      <hr />
+    </div>
+    <% }); %>
+  </body>
+</html>

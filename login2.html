@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>로그인2</title>
+  </head>
+  <body>
+    <h2>로그인2</h2>
+    <p>아이디: <input type="text" name="userid" id="userid" /></p>
+    <p>비밀번호: <input type="password" name="userpw" id="userpw" /></p>
+    <button id="loginBtn">로그인</button>
+    <script>
+      document.getElementById("loginBtn").addEventListener("click", () => {
+        const userid = document.getElementById("userid").value;
+        const userpw = document.getElementById("userpw").value;
+
+        fetch(`http://127.0.0.1:3000/login?userid=${userid}&userpw=${userpw}`)
+          .then((res) => res.text())
+          .then((data) => {
+            console.log("서버 응답: ", +data);
+          })
+          .catch((err) => {
+            console.error("에러 발생!", err);
+          });
+      });
+    </script>
+  </body>
+</html>

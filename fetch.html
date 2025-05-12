@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>기술 고르기</title>
+  </head>
+  <body>
+    <h2>기술 고르기</h2>
+    <select name="skills" id="skills">
+      <option value="">기술 고르기</option>
+    </select>
+    <script>
+      fetch("http://127.0.0.1:3000/")
+        .then((response) => {
+          if (!response.ok) {
+            //.ok 200값 사이 들어온다
+            throw new Error("API 호출 실패");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          const skills = document.getElementById("skills");
+          data.forEach((skill) => {
+            // <option></option>
+            const option = document.createElement("option");
+            // <option value='skill.name'></option>
+            option.value = skill.name;
+            // <option value='skill.name'>skill.name</option>
+            option.textContent = skill.name;
+            skills.appendChild(option);
+          });
+        })
+        .catch((error) => {
+          console.error("fetch 실패!");
+        });
+    </script>
+  </body>
+</html>

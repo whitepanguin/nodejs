@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>사용자 목록</title>
+  </head>
+  <body>
+    <h2>사용자 목록</h2>
+    <ul>
+      <!-- { users } -->
+      <% users.forEach(function(user) {%>
+      <li><%= user%></li>
+      <% });%>
+    </ul>
+  </body>
+</html>
