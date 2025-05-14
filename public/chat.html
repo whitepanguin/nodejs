@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>채팅룸</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        margin: 0;
+        display: flex;
+        height: 100vh;
+      }
+      #chat {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 1rem;
+      }
+      #messages {
+        flex: 1;
+        overflow-y: auto;
+        border: 1px solid #ccc;
+        padding: 0.5rem;
+      }
+      #users {
+        width: 250px;
+        border-left: 1px solid #ccc;
+        padding: 0.5rem;
+      }
+      #emojiBox {
+        display: none;
+        border: 1px solid #ccc;
+        padding: 0.5rem;
+        position: absolute;
+        background: white;
+      }
+      #emojiBox span {
+        cursor: pointer;
+        padding: 0.3rem;
+      }
+      .system-msg {
+        color: gray;
+        font-style: italic;
+      }
+      .online-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: green;
+        margin-right: 5px;
+      }
+      .chat-container {
+        display: flex;
+        flex: 1;
+      }
+      .chat-main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="chat">
+      <h3 id="channelName"></h3>
+      <div class="chat-container">
+        <div class="chat-main">
+          <div id="messages"></div>
+          <div>
+            <input type="text" id="to" placeholder="귓속말 대상(없으면 전체)" />
+            <input type="text" id="message" placeholder="메세지를 입력하세요" />
+            <select id="channelSelector">
+              <option value="lobby">대기실</option>
+              <option value="sports">스포츠</option>
+              <option value="programming">프로그래밍</option>
+              <option value="music">음악</option>
+            </select>
+            <button id="emoji">😀</button>
+            <button id="send">전송</button>
+          </div>
+        </div>
+        <div id="users">
+          <h4>접속자 목록</h4>
+          <div id="userCounts"></div>
+          <div id="userList"></div>
+        </div>
+      </div>
+      <div id="emojiBox">
+        <span>😁</span>
+        <span>😂</span>
+        <span>😎</span>
+        <span>😮</span>
+        <span>🤐</span>
+        <span>😤</span>
+        <span>😴</span>
+        <span>😋</span>
+        <span>😐</span>
+        <span>😱</span>
+      </div>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const socket = io();
+      const nickname = localStorage.getItem("nickname");
+      let currentChannel = localStorage.getItem("channel");
+
+      if (!nickname || !currentChannel) {
+        alert("닉네임 또는 채널 정보가 없습니다.");
+        location.href = "index.html";
+      }
+      const channelName = document.getElementById("channelName");
+      const messages = document.getElementById("messages");
+      const users = document.getElementById("userList");
+      const userCounts = document.getElementById("userCounts");
+      const messageInput = document.getElementById("message");
+      const toInput = document.getElementById("to");
+      const emojiBtn = document.getElementById("emoji");
+      const emojiBox = document.getElementById("emojiBox");
+      const channelSelector = document.getElementById("channelSelector");
+
+      channelSelector.value = currentChannel;
+      channelName.textContent = `[채널: ${currentChannel}]`;
+
+      document.getElementById("send").onclick = sendMessage;
+      function sendMessage() {
+        // console.log("message send");
+        const text = messageInput.value.trim();
+        const to = toInput.value.trim();
+        // console.log(text);
+        // console.log(to);
+        if (text) {
+          socket.emit("chat", { text, to: to || null });
+          messageInput.value = "";
+        }
+      }
+      messageInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") sendMessage();
+      });
+
+      channelSelector.onchange = () => {
+        const newChannel = channelSelector.value;
+        if (newChannel !== currentChannel) {
+          socket.emit("changeChannel", { newChannel });
+          currentChannel = newChannel;
+          channelName.textContent = `[채널: ${currentChannel}]`;
+          messages.innerHTML = "";
+        }
+      };
+
+      emojiBtn.onclick = () => {
+        emojiBox.style.display =
+          emojiBox.style.display === "block" ? "none" : "block";
+        emojiBox.style.top = emojiBtn.offsetTop - 50 + "px";
+        emojiBox.style.left = emojiBtn.offsetLeft + 0 + "px";
+      };
+
+      emojiBox.querySelectorAll("span").forEach((span) => {
+        span.onclick = () => {
+          messageInput.value += span.textContent;
+          emojiBox.style.display = "none";
+        };
+      });
+
+      /*
+      socket.on("chatLog", (log) => {
+        log.forEach(({ user, text }) => {
+          const div = document.createElement("div");
+          div.textContent = `[${user}] ${text}`;
+          if (user === "system") div.className = "system-msg";
+          messages.appendChild(div);
+        });
+      });
+      */
+      // emit 이벤트를 내가 만들어서 발생시키는 함수다
+      socket.emit("join", { nickname, channel: currentChannel });
+
+      socket.on("message", ({ user, text }) => {
+        console.log("user: ", user, "text: ", text);
+        const div = document.createElement("div");
+        div.textContent = `[${user}] ${text}`;
+        if (user === "system") div.className = "system-msg";
+        messages.appendChild(div);
+      });
+
+      socket.on("userList", (list) => {
+        users.innerHTML = "";
+        const channelMap = {};
+
+        list.forEach(({ nickname, channel }) => {
+          const div = document.createElement("div");
+
+          div.innerHTML = `<span class="online-dot"></span><strong>${nickname}</strong> (${channel})`;
+          users.appendChild(div);
+          div.onclick = () => (toInput.value = nickname);
+
+          if (!channelMap[channel]) channelMap[channel] = 0;
+          channelMap[channel]++;
+        });
+
+        userCounts.innerHTML =
+          "<strong>채널별 접속자 수</strong><br>" +
+          Object.entries(channelMap)
+            .map(([ch, count]) => `${ch}: ${count}명`)
+            .join("<br>");
+      });
+
+      socket.on("whisper", ({ user, text }) => {
+        const div = document.createElement("div");
+        div.textContent = `(귓속말) [${user}] ${text}`;
+        div.style.color = "deeppink";
+        messages.appendChild(div);
+      });
+    </script>
+  </body>
+</html>
